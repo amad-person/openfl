@@ -48,6 +48,7 @@ assigner :
           - filter_training_weights
 
 tasks :
+  defaults : plan/defaults/tasks_keras.yaml
   aggregated_model_validation:
     function : validate
     kwargs   :
@@ -75,8 +76,10 @@ tasks :
       epochs     : 10
   test_privacy_meter_model:
     function : test_privacy_meter_model
-    kwargs   :
-      batch_size : 32
-      epochs     : 1
+    kwargs   : {}
+      # batch_size : 32
+      # epochs     : 1
   filter_training_weights:
     function : filter_training_weights
+    kwargs   : {}
+     

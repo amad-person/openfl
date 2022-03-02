@@ -7,6 +7,11 @@ from openfl.federated import TensorFlowDataLoader
 
 from .mnist_utils import load_mnist_shard
 
+import sys
+sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter')
+# sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter/datasets/mnist_data/MNIST_dataset')
+import ml_privacy_meter
+
 
 class MNISTAttackInMemory(TensorFlowDataLoader):
     """TensorFlow Data Loader for MNIST Dataset."""
@@ -40,10 +45,10 @@ class MNISTAttackInMemory(TensorFlowDataLoader):
         self.num_classes = num_classes
 
         #TODO MNIST data must be serialized to .txt and txt.npy file before this will work
-        dataset_path = 'mnist.txt'
-        saved_path = 'mnist_train.txt.npy'
+        dataset_path = '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter/datasets/mnist_data/MNIST_dataset/mnist.txt'
+        saved_path = '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter/datasets/mnist_data/MNIST_dataset/mnist_train.txt.npy'
 
-        self.attack_data_handler = ml_privacy_meter.utils.attack_data(
+        self.attack_data_handler = ml_privacy_meter.utils.attack_data.attack_data(
                                        dataset_path=dataset_path,
                                        member_dataset_path=saved_path,
                                        batch_size=100,
