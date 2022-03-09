@@ -7,6 +7,7 @@ import inspect
 
 from .runner import TaskRunner
 
+import sys
 
 class FederatedModel(TaskRunner):
     """
@@ -50,7 +51,10 @@ class FederatedModel(TaskRunner):
             self.model = self.build_model(
                 self.feature_shape, self.data_loader.num_classes)
             from .runner_keras import KerasTaskRunner
-            self.runner = KerasTaskRunner(**kwargs)
+            sys.path.insert(0, '~/miniconda3/envs/gpuenv/lib/python3.8/site-packages/openfl-workspace/keras_privacy_meter/src')
+            # sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/keras_privacy_meter/src')
+            from keras_privacy_meter import KerasPrivacyMeter
+            self.runner = KerasPrivacyMeter(**kwargs)
             self.optimizer = self.model.optimizer
         self.lambda_opt = optimizer
         if hasattr(self.model, 'validate'):
@@ -66,6 +70,7 @@ class FederatedModel(TaskRunner):
         self.tensor_dict_split_fn_kwargs = \
             self.runner.tensor_dict_split_fn_kwargs
         self.initialize_tensorkeys_for_functions()
+        self.add_tensorkey_dependencies_for_new_functions()
 
     def __getattribute__(self, attr):
         """Direct call into self.runner methods if necessary."""
@@ -75,7 +80,7 @@ class FederatedModel(TaskRunner):
                     'initialize_tensorkeys_for_functions',
                     'save_native', 'load_native', 'rebuild_model',
                     'set_optimizer_treatment',
-                    'train', 'train_batches', 'validate']:
+                    'train', 'train_batches', 'validate', 'add_tensorkey_dependencies_for_new_functions']:
             return self.runner.__getattribute__(attr)
         return super(FederatedModel, self).__getattribute__(attr)
 
@@ -99,4 +104,4 @@ class FederatedModel(TaskRunner):
             )
             for data_slice in self.data_loader.split(
                 num_collaborators, equally=True
-            )]
+            )] 

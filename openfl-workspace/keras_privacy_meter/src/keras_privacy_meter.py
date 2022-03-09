@@ -4,10 +4,15 @@
 """You may copy this file as the starting point of your own model."""
 
 import tensorflow.keras as ke
+import sys
+sys.path.insert(0, '~/miniconda3/envs/gpuenv/lib/python3.8/site-packages/openfl-workspace/ml_privacy_meter')
+# sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter')
 import ml_privacy_meter
 
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Flatten, Dense
+
+from openfl.utilities import TensorKey, split_tensor_dict_for_holdouts, Metric
 
 from openfl.federated import KerasTaskRunner
 
@@ -40,33 +45,33 @@ class KerasPrivacyMeter(KerasTaskRunner):
             self.logger.info(f'Valid Set Size : {self.get_valid_data_size()}')
 
         # Initialize ML Privacy Meter
-        self.priv_meter_obj = ml_privacy_meter.attack.federated_meminf.initialize(
+        self.priv_meter_obj = ml_privacy_meter.attack.federated_meminf.initialize_fl(
             target_train_model=self.model,
             target_attack_model=self.model,
             train_datahandler=self.data_loader.attack_data_handler,
             attack_datahandler=self.data_loader.attack_data_handler,
             layers_to_exploit=[5],
-            gradients_to_exploit=[2],
+            gradients_to_exploit=[],
             window_size=5,
-            device=None, epochs=epochs, model_name='fl_model'
+            device=None, epochs=1, model_name='fl_model'
         )
 
-    def add_tensorkey_dependencies_for_new_tasks(self):
+    def add_tensorkey_dependencies_for_new_functions(self):
         """
         This function adds the new dependencies for functions:
             train_attack_model
             validate_attack_model
             filter_training_weights
         """
-        
-        output_model_dict = self.get_tensor_dict(with_opt_vars=with_opt_vars)
+        # output_model_dict = self.get_tensor_dict(with_opt_vars=with_opt_vars)
+        output_model_dict = self.get_tensor_dict(with_opt_vars=False)
         global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(
             self.logger, output_model_dict,
             **self.tensor_dict_split_fn_kwargs
         )
 
         # Add 'train_attack_model' requirements
-        self.required_tensorkeys_for_function['train_attack_model'] = \
+        self.required_tensorkeys_for_function['train_privacy_meter_model'] = \
             [TensorKey(tensor_name, 'LOCAL', 0, False, ('trained',))
              for tensor_name in {
                  **global_model_dict,
@@ -78,7 +83,7 @@ class KerasPrivacyMeter(KerasTaskRunner):
         # However, in practice you can just use self.attackobj
         # because the model state will not have changed since running 
         # 'train_attack_model'
-        self.required_tensorkeys_for_function['validate_attack_model'] = \
+        self.required_tensorkeys_for_function['test_privacy_meter_model'] = \
             [TensorKey(tensor_name, 'LOCAL', 0, False, ('trained',))
              for tensor_name in {
                  **global_model_dict,
@@ -90,6 +95,9 @@ class KerasPrivacyMeter(KerasTaskRunner):
              for tensor_name in {
                  **global_model_dict,
                  **local_model_dict}]
+        # print("Tensorkey for Privacy Meter model")
+        # for func_key, func_value in self.required_tensorkeys_for_function.items() :
+        #     print(func_key,func_value) 
 
 
     def build_model(self,
@@ -112,6 +120,7 @@ class KerasPrivacyMeter(KerasTaskRunner):
             tensorflow.python.keras.engine.sequential.Sequential: The model defined in Keras
 
         """
+        print("Build model")
         model = Sequential()
 
         model.add(Conv2D(conv1_channels_out,
@@ -259,7 +268,8 @@ class KerasPrivacyMeter(KerasTaskRunner):
         
         #### the attack metrics can either be added to a tensorkey
         ####  or just saved as an object attribute
-        #self.attack_metrics = attack_metrics
+        attack_metrics = None # TODO: setting manually for integration test run
+        self.attack_metrics = attack_metrics
         
         global_tensorkey_dict = {}
         local_tensorkey_dict = {}
@@ -294,11 +304,12 @@ class KerasPrivacyMeter(KerasTaskRunner):
         # no need to restore local tensorkeys (these were previously stored after training)
         local_tensorkey_model_dict = {}
 
+        model_is_vulnerable = True # TODO: setting manually for integration test run
         if self.attack_metrics == model_is_vulnerable:
           # Send nothing or add noise to model
           global_tensorkey_model_dict = {
               tensorkey: nparray + np.random.random(nparray.shape) for tensorkey, nparray in global_tensorkey_model_dict
           }
                
-        return global_tensorkey_dict, local_tensorkey_model_dict 
+        return global_tensorkey_model_dict, local_tensorkey_model_dict 
 
