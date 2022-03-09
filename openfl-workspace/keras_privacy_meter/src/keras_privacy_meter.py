@@ -5,7 +5,8 @@
 
 import tensorflow.keras as ke
 import sys
-sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter')
+sys.path.insert(0, '~/miniconda3/envs/gpuenv/lib/python3.8/site-packages/openfl-workspace/ml_privacy_meter')
+# sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter')
 import ml_privacy_meter
 
 from tensorflow.keras import Sequential
@@ -267,7 +268,8 @@ class KerasPrivacyMeter(KerasTaskRunner):
         
         #### the attack metrics can either be added to a tensorkey
         ####  or just saved as an object attribute
-        #self.attack_metrics = attack_metrics
+        attack_metrics = None # TODO: setting manually for integration test run
+        self.attack_metrics = attack_metrics
         
         global_tensorkey_dict = {}
         local_tensorkey_dict = {}
@@ -302,11 +304,12 @@ class KerasPrivacyMeter(KerasTaskRunner):
         # no need to restore local tensorkeys (these were previously stored after training)
         local_tensorkey_model_dict = {}
 
+        model_is_vulnerable = True # TODO: setting manually for integration test run
         if self.attack_metrics == model_is_vulnerable:
           # Send nothing or add noise to model
           global_tensorkey_model_dict = {
               tensorkey: nparray + np.random.random(nparray.shape) for tensorkey, nparray in global_tensorkey_model_dict
           }
                
-        return global_tensorkey_dict, local_tensorkey_model_dict 
+        return global_tensorkey_model_dict, local_tensorkey_model_dict 
 

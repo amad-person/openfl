@@ -8,10 +8,11 @@ from openfl.federated import TensorFlowDataLoader
 from .mnist_utils import load_mnist_shard
 
 import sys
-sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter')
-# sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter/datasets/mnist_data/MNIST_dataset')
+sys.path.insert(0, '~/miniconda3/envs/gpuenv/lib/python3.8/site-packages/openfl-workspace/ml_privacy_meter')
+# sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter')
 import ml_privacy_meter
 
+import numpy as np 
 
 class MNISTAttackInMemory(TensorFlowDataLoader):
     """TensorFlow Data Loader for MNIST Dataset."""
@@ -42,15 +43,24 @@ class MNISTAttackInMemory(TensorFlowDataLoader):
         self.X_valid = X_valid
         self.y_valid = y_valid
 
+        # TODO: for whitebox attack labels cannot be one hot encoded currently
+        y_train_labels = np.argmax(self.y_train, axis=1)
+        y_valid_labels = np.argmax(self.y_valid, axis=1)
+
         self.num_classes = num_classes
 
-        #TODO MNIST data must be serialized to .txt and txt.npy file before this will work
-        dataset_path = '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter/datasets/mnist_data/MNIST_dataset/mnist.txt'
-        saved_path = '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/ml_privacy_meter/datasets/mnist_data/MNIST_dataset/mnist_train.txt.npy'
+        num_datapoints = 5000
+        x_target_train, y_target_train = self.X_train[:num_datapoints], y_train_labels[:num_datapoints]
 
-        self.attack_data_handler = ml_privacy_meter.utils.attack_data.attack_data(
-                                       dataset_path=dataset_path,
-                                       member_dataset_path=saved_path,
+        # population data (training data is a subset of this here)
+        x_population = np.concatenate((X_train, X_valid))
+        y_population = np.concatenate((y_train_labels, y_valid_labels))
+
+        self.attack_data_handler = ml_privacy_meter.utils.attack_data.AttackData(
+                                       x_population=x_population,
+                                       y_population=y_population,
+                                       x_target_train=x_target_train,
+                                       y_target_train=y_target_train,
                                        batch_size=100,
                                        attack_percentage=10, input_shape=input_shape,
                                        normalization=True)

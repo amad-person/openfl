@@ -102,8 +102,10 @@ def load_mnist_shard(shard_num, collaborator_count, categorical=True,
 
     X_train = X_train.astype('float32')
     X_valid = X_valid.astype('float32')
-    X_train /= 255
-    X_valid /= 255
+    
+    # TODO: ML Privacy Meter will normalize for now
+    # X_train /= 255
+    # X_valid /= 255
 
     logger.info(f'MNIST > X_train Shape : {X_train.shape}')
     logger.info(f'MNIST > y_train Shape : {y_train.shape}')

@@ -76,11 +76,14 @@ create_collaborator() {
 # Create FL workspace
 rm -rf ${FED_WORKSPACE}
 fx workspace create --prefix ${FED_WORKSPACE} --template ${TEMPLATE}
+echo "fx workspace create command done!"
+
 cd ${FED_WORKSPACE}
 FED_DIRECTORY=`pwd`  # Get the absolute directory path for the workspace
 
 # Initialize FL plan
 fx plan initialize -a ${FQDN}
+echo "fx plan initialize command done!"
 
 # Set rounds to train if given
 if [[ ! -z "$ROUNDS_TO_TRAIN" ]]
@@ -90,23 +93,31 @@ fi
 
 # Create certificate authority for workspace
 fx workspace certify
+echo "fx workspace certify command done!"
 
 # Export FL workspace
 fx workspace export
+echo "fx workspace export command done!"
 
 # Create aggregator certificate
 fx aggregator generate-cert-request --fqdn ${FQDN}
+echo "fx aggregator generate-cert-request command done!"
 
 # Sign aggregator certificate
 fx aggregator certify --fqdn ${FQDN} --silent # Remove '--silent' if you run this manually
+echo "fx aggregator certify command done!"
 
 # Create collaborator #1
+echo "creating collaborator 1"
 COL1_DIRECTORY=${FED_DIRECTORY}/${COL1}
 create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL1_DIRECTORY} ${COL1_DATA_PATH}
+echo "create collaborator 1 command done!"
 
 # Create collaborator #2
+echo "creating collaborator 2"
 COL2_DIRECTORY=${FED_DIRECTORY}/${COL2}
 create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} ${COL2_DATA_PATH}
+echo "create collaborator 2 command done!"
 
 # # Run the federation
 cd ${FED_DIRECTORY}

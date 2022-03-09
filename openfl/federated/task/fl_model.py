@@ -51,7 +51,8 @@ class FederatedModel(TaskRunner):
             self.model = self.build_model(
                 self.feature_shape, self.data_loader.num_classes)
             from .runner_keras import KerasTaskRunner
-            sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/keras_privacy_meter/src')
+            sys.path.insert(0, '~/miniconda3/envs/gpuenv/lib/python3.8/site-packages/openfl-workspace/keras_privacy_meter/src')
+            # sys.path.insert(0, '/home/aspaul/miniconda3/envs/openfl-mlprivmeter/lib/python3.7/site-packages/openfl-workspace/keras_privacy_meter/src')
             from keras_privacy_meter import KerasPrivacyMeter
             self.runner = KerasPrivacyMeter(**kwargs)
             self.optimizer = self.model.optimizer
